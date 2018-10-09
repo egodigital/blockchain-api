@@ -1,0 +1,45 @@
+{
+  "name": "@egodigital/blockchain",
+  "version": "0.0.1",
+  "description": "A RESTful API for using a simple blockchain.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "(rm -r ./dist || true) && (\"./node_modules/.bin/tsc\" && \"./node_modules/.bin/tsc\" -d)",
+    "doc": "(rm -r ./doc || true) && (\"./node_modules/.bin/typedoc\" --out ./doc ./src)",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/egodigital/blockchain-api.git"
+  },
+  "keywords": [
+    "blockchain",
+    "http",
+    "rest",
+    "api"
+  ],
+  "author": "e.GO Digital GmbH, Aachen, Germany",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/egodigital/blockchain-api/issues"
+  },
+  "homepage": "https://github.com/egodigital/blockchain-api#readme",
+  "devDependencies": {
+    "@types/express": "^4.16.0",
+    "@types/lodash": "^4.14.116",
+    "@types/moment-timezone": "^0.5.9",
+    "@types/node": "^8.10.35",
+    "@types/uuid": "^3.4.4",
+    "tslint": "^5.11.0",
+    "typedoc": "^0.12.0",
+    "typescript": "^3.1.1"
+  },
+  "dependencies": {
+    "express": "^4.16.3",
+    "lodash": "^4.17.11",
+    "moment": "^2.22.2",
+    "moment-timezone": "^0.5.21",
+    "node-enumerable": "^3.9.0",
+    "uuid": "^3.3.2"
+  }
+}
