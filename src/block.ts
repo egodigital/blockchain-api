@@ -121,6 +121,25 @@ export class BlockChainBlock {
     }
 
     /**
+     * Compares that block with another, and handles that as previous block.
+     *
+     * @param {BlockChainBlock} preBlock The instance that is handled as previous block.
+     *
+     * @return {boolean} Is valid or not.
+     */
+    public isValidWith(prevBlock: BlockChainBlock): boolean {
+        if (prevBlock !== this) {
+            if (this.calculateHash().equals(this.hash)) {
+                if (this.previousHash.equals(prevBlock.hash)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Gets or sets the hash of the previous block.
      */
     public get previousHash(): Buffer {

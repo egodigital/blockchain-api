@@ -156,19 +156,12 @@ export class BlockChain {
         await this.each(async (context) => {
             try {
                 if (false !== prevBlock) {
-                    if (!context.block.calculateHash().equals(context.block.hash)) {
-                        isValid = false;
-                        context.cancel();
-
+                    if (context.block.isValidWith(prevBlock)) {
                         return;
                     }
 
-                    if (!context.block.previousHash.equals(prevBlock.hash)) {
-                        isValid = false;
-                        context.cancel();
-
-                        return;
-                    }
+                    isValid = false;
+                    context.cancel();
                 }
             } finally {
                 prevBlock = context.block;

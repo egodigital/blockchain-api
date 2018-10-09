@@ -119,6 +119,7 @@ Content-Type: application/json; charset=utf-8
     {
       "hash": "S4CvY55kkHRb0iRlbmTmzMHCxlad+1Opz0BJZ6rek5Y=",
       "index": 1,
+      "isValid": true,
       "previousHash": "geD/z7a0wvbR2oQ+8cHGFSZub5L39ILxvOd+Egou1Ok=",
       "resource": "/api/v1/my_chain/1",
       "timestamp": "2018-10-09T14:50:10.000Z"
@@ -126,6 +127,7 @@ Content-Type: application/json; charset=utf-8
     {
       "hash": "ggNsImfB4TxttrGeDRfsLIai8kfpcQxn9dVMLGyZObA=",
       "index": 2,
+      "isValid": true,
       "previousHash": "S4CvY55kkHRb0iRlbmTmzMHCxlad+1Opz0BJZ6rek5Y=",
       "resource": "/api/v1/my_chain/2",
       "timestamp": "2018-10-09T14:52:34.000Z"

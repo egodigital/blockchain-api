@@ -103,6 +103,8 @@ export function init(
         if ('' !== CHAIN_NAME) {
             const CHAIN = await storage.getChain(CHAIN_NAME);
             if (false !== CHAIN) {
+                let prevBlock: BlockChainBlock | false = false;
+
                 const BLOCKS: any[] = [];
                 await CHAIN.each(async (context) => {
                     if (context.index >= limit) {
@@ -111,8 +113,16 @@ export function init(
                     }
 
                     BLOCKS.push(
-                        toJSON(CHAIN, context.block)
+                        toJSON(
+                            CHAIN, context.block,
+                            false !== prevBlock ? context.block.isValidWith(prevBlock)
+                                                : true,
+                        )
                     );
+
+                    if (false === prevBlock) {
+                        prevBlock = context.block;
+                    }
                 }, offset);
 
                 const RESULT = {
@@ -197,7 +207,10 @@ function normalizeChainName(name: any) {
     );
 }
 
-function toJSON(chain: BlockChain, block: BlockChainBlock): any {
+function toJSON(
+    chain: BlockChain, block: BlockChainBlock,
+    isValid?: boolean
+): any {
     if (_.isNil(block)) {
         return block;
     }
@@ -205,6 +218,7 @@ function toJSON(chain: BlockChain, block: BlockChainBlock): any {
     return {
         hash: block.hash.toString('base64'),
         index: block.index,
+        isValid: isValid,
         previousHash: block.previousHash.toString('base64'),
         resource: '/api/v1/' + encodeURIComponent(chain.name) + '/' + block.index,
         timestamp: moment.utc(block.timestamp, TIMESTAMP_FORMAT)
