@@ -26,6 +26,13 @@ import { ArrayBlockChainStorage } from './storages/array';
 
     const STORAGE: BlockChainStorage = new ArrayBlockChainStorage();
 
+    APP.use((req, res, next) => {
+        res.header('X-Powered-By', 'e.GO Digital GmbH, Aachen, Germany');
+        res.header('X-Tm-Mk', '1979-09-05 23:09');
+
+        return next();
+    });
+
     // v1
     {
         const v1 = express.Router();

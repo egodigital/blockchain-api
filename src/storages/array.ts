@@ -16,8 +16,9 @@
  */
 
 import * as _ from "lodash";
+import * as egoose from "@egodigital/egoose";
 import { BlockChainBlock } from "../block";
-import { BlockChainIterator, BlockChainIteratorItem, BlockChainStorage } from "../storage";
+import { BlockChainIterator, BlockChainIteratorItem, BlockChainStorage, CreateChainResult, GetChainResult } from "../storage";
 import { BlockChain } from "../chain";
 
 class ArrayIterator implements BlockChainIterator {
@@ -72,34 +73,30 @@ export class ArrayBlockChainStorage implements BlockChainStorage {
     }
 
     /** @inheritdoc */
-    public getChain(name: string, autoCreate?: boolean): BlockChain {
-        if (arguments.length < 1) {
-            autoCreate = true;
+    public createChain(name: string): CreateChainResult {
+        name = normalizeChainName(name);
+
+        let chain = this._CHAIN[name];
+        if (!_.isNil(chain)) {
+            return false;
         }
 
-        name = name.toLowerCase().trim();
+        chain = new BlockChain();
+        chain.name = name;
+
+        return this._CHAIN[name] = chain;
+    }
+
+    /** @inheritdoc */
+    public getChain(name: string): GetChainResult {
+        name = normalizeChainName(name);
 
         let chain = this._CHAIN[name];
         if (_.isNil(chain)) {
-            if (autoCreate) {
-                chain = new BlockChain();
-                if ('' !== name) {
-                    chain.name = name;
-                }
-
-                this._CHAIN[name] = chain;
-            }
+            return false;
         }
 
-        chain.setStorage(this);
-
         return chain;
-    }
-
-    private getLatestBlock() {
-        return this._BLOCKS[
-            this._BLOCKS.length - 1
-        ];
     }
 
     /** @inheritdoc */
@@ -108,4 +105,16 @@ export class ArrayBlockChainStorage implements BlockChainStorage {
             this._BLOCKS, offset
         );
     }
+
+    private getLatestBlock() {
+        return this._BLOCKS[
+            this._BLOCKS.length - 1
+        ];
+    }
+}
+
+function normalizeChainName(name: any) {
+    return egoose.normalizeString(
+        name
+    );
 }

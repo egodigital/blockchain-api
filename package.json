@@ -6,6 +6,7 @@
   "scripts": {
     "build": "(rm -r ./dist || true) && (\"./node_modules/.bin/tsc\" && \"./node_modules/.bin/tsc\" -d)",
     "doc": "(rm -r ./doc || true) && (\"./node_modules/.bin/typedoc\" --out ./doc ./src)",
+    "start": "npm run build && node .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -26,6 +27,7 @@
   "homepage": "https://github.com/egodigital/blockchain-api#readme",
   "devDependencies": {
     "@types/express": "^4.16.0",
+    "@types/joi": "^13.6.0",
     "@types/lodash": "^4.14.116",
     "@types/moment-timezone": "^0.5.9",
     "@types/node": "^8.10.35",
@@ -35,7 +37,9 @@
     "typescript": "^3.1.1"
   },
   "dependencies": {
+    "@egodigital/egoose": "^2.11.0",
     "express": "^4.16.3",
+    "joi": "^13.7.0",
     "lodash": "^4.17.11",
     "moment": "^2.22.2",
     "moment-timezone": "^0.5.21",

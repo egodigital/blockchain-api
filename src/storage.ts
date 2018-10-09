@@ -41,6 +41,16 @@ export interface BlockChainIterator {
 export type BlockChainIteratorItem = BlockChainBlock | false;
 
 /**
+ * A possible value of a 'BlockChainStorage.createChain()' call.
+ */
+export type CreateChainResult = BlockChain | false;
+
+/**
+ * A possible value of a 'BlockChainStorage.getChain()' call.
+ */
+export type GetChainResult = BlockChain | false;
+
+/**
  * A block chain storage.
  */
 export interface BlockChainStorage {
@@ -52,14 +62,22 @@ export interface BlockChainStorage {
     addBlock(block: BlockChainBlock): void | PromiseLike<void>;
 
     /**
-     * Returns a block chain.
+     * Creates a new chain.
+     *
+     * @param {string} name The name of the new chain.
+     *
+     * @return {CreateChainResult|PromiseLike<CreateChainResult} The result with the new chain or (false) if it already exists.
+     */
+    createChain(name: string): CreateChainResult | PromiseLike<CreateChainResult>;
+
+    /**
+     * Returns an existing block chain.
      *
      * @param {string} name The name of the chain.
-     * @param {boolean} [autoCreate] Create if nor exist.
      *
-     * @return {BlockChain|PromiseLike<BlockChain} The result with the (new) chain.
+     * @return {GetBlockChainResult|PromiseLike<GetBlockChainResult} The result with the chain or (false) if not found.
      */
-    getChain(name: string, autoCreate?: boolean): BlockChain | PromiseLike<BlockChain>;
+    getChain(name: string): GetChainResult | PromiseLike<GetChainResult>;
 
     /**
      * Returns the iterator for iterating the storage.
