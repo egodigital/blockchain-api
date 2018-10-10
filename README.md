@@ -33,7 +33,36 @@ You can set environment variables to setup the API.
 | Name | Description |
 | --- | --- |
 | `APP_PORT` | Defines the TCP port, the service should run on. Default: `80` |
+| `BLOCKCHAIN_PATH` | If the storage saves blocks to the file system, this is the root path for all chains. |
 | `BLOCKCHAIN_STORAGE` | The type of storage to use. Default: `memory` |
+
+##### BLOCKCHAIN_STORAGE
+
+###### Memory
+
+Possible values:
+
+* `mem`
+* `memory`
+
+###### File system
+
+Possible values:
+
+* `file`
+* `files`
+* `filesystem`
+* `fs`
+* `json`
+
+Example:
+
+```bash
+export BLOCKCHAIN_STORAGE=files
+export BLOCKCHAIN_PATH=./chains
+
+npm run start
+```
 
 ### API
 

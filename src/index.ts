@@ -21,6 +21,7 @@ import * as egoose from '@egodigital/egoose';
 import * as express from 'express';
 import { BlockChainStorage } from './storage';
 import { ArrayBlockChainStorage } from './storages/array';
+import { FileBlockChainStorage } from './storages/fs';
 
 (async () => {
     const APP = express();
@@ -32,8 +33,21 @@ import { ArrayBlockChainStorage } from './storages/array';
     let storage: BlockChainStorage | false = false;
     switch (BLOCKCHAIN_STORAGE) {
         case '':
+        case 'mem':
         case 'memory':
             storage = new ArrayBlockChainStorage();
+            break;
+
+        case 'fs':
+        case 'file':
+        case 'files':
+        case 'filesystem':
+        case 'json':
+            storage = new FileBlockChainStorage(
+                egoose.toStringSafe(
+                    process.env.BLOCKCHAIN_PATH
+                )
+            );
             break;
     }
 
