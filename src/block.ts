@@ -15,9 +15,40 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { createHash } from 'crypto';
+import { calculateBlockHash, isBlockValidWith } from './helpers';
+import { BlockChain } from './chain';
 import * as _ from 'lodash';
 import * as moment from 'moment';
+
+/**
+ * Describes a block of a blockchain.
+ */
+export interface ChainBlock {
+    /**
+     * The underlying chain.
+     */
+    chain?: BlockChain;
+    /**
+     * The data.
+     */
+    data: Buffer;
+    /**
+     * The hash.
+     */
+    hash: Buffer;
+    /**
+     * The zero based index.
+     */
+    index: number;
+    /**
+     * The hash of the previuos block.
+     */
+    previousHash: Buffer;
+    /**
+     * The timestamp.
+     */
+    timestamp: string;
+}
 
 /**
  * Moment.js format for a timestamp string.
@@ -27,7 +58,7 @@ export const TIMESTAMP_FORMAT = 'YYYYMMDDHHmmss';
 /**
  * A block of a block chain.
  */
-export class BlockChainBlock {
+export class BlockChainBlock implements ChainBlock {
     private _data: Buffer;
     private _hash: Buffer;
     private _index = 0;
@@ -69,12 +100,7 @@ export class BlockChainBlock {
      * @return {Buffer} The calulated hash.
      */
     public calculateHash(): Buffer {
-        return createHash('sha256')
-            .update(new Buffer(this.index + "\n", 'utf8'))
-            .update(this.previousHash).update(new Buffer("\n", 'utf8'))
-            .update(new Buffer(this.timestamp + "\n", 'utf8'))
-            .update(this.data)
-            .digest();
+        return calculateBlockHash(this);
     }
 
     /**
@@ -94,23 +120,17 @@ export class BlockChainBlock {
         return BLOCK;
     }
 
-    /**
-     * Gets the data of the block.
-     */
+    /** @inheritdoc */
     public get data(): Buffer {
         return this._data;
     }
 
-    /**
-     * Gets the hash of the block.
-     */
+    /** @inheritdoc */
     public get hash(): Buffer {
         return this._hash;
     }
 
-    /**
-     * Gets or sets the zero based index.
-     */
+    /** @inheritdoc */
     public get index(): number {
         return this._index;
     }
@@ -123,25 +143,15 @@ export class BlockChainBlock {
     /**
      * Compares that block with another, and handles that as previous block.
      *
-     * @param {BlockChainBlock} preBlock The instance that is handled as previous block.
+     * @param {ChainBlock} prevBlock The instance that is handled as previous block.
      *
      * @return {boolean} Is valid or not.
      */
-    public isValidWith(prevBlock: BlockChainBlock): boolean {
-        if (prevBlock !== this) {
-            if (this.calculateHash().equals(this.hash)) {
-                if (this.previousHash.equals(prevBlock.hash)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+    public isValidWith(prevBlock: ChainBlock): boolean {
+        return isBlockValidWith(this, prevBlock);
     }
 
-    /**
-     * Gets or sets the hash of the previous block.
-     */
+    /** @inheritdoc */
     public get previousHash(): Buffer {
         return this._previousHash;
     }
@@ -151,9 +161,7 @@ export class BlockChainBlock {
         this.updateHash();
     }
 
-    /**
-     * Gets the timestamp.
-     */
+    /** @inheritdoc */
     public get timestamp(): string {
         return this._timestamp;
     }
@@ -161,4 +169,20 @@ export class BlockChainBlock {
     private updateHash() {
         this._hash = this.calculateHash();
     }
+}
+
+/**
+ * Simple implementation of 'chainBlock' interface.
+ */
+export class SimpleChainBlock implements ChainBlock {
+    /** @inheritdoc */
+    data: Buffer;
+    /** @inheritdoc */
+    hash: Buffer;
+    /** @inheritdoc */
+    index: number;
+    /** @inheritdoc */
+    previousHash: Buffer;
+    /** @inheritdoc */
+    timestamp: string;
 }

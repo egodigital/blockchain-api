@@ -16,8 +16,9 @@
  */
 
 import * as _ from 'lodash';
-import { BlockChainBlock, TIMESTAMP_FORMAT } from '../../block';
+import { BlockChainBlock, ChainBlock, TIMESTAMP_FORMAT } from '../../block';
 import { BlockChain } from '../../chain';
+import { isBlockValidWith } from '../../helpers';
 import * as egoose from '@egodigital/egoose';
 import * as express from 'express';
 import * as joi from 'joi';
@@ -103,7 +104,7 @@ export function init(
         if ('' !== CHAIN_NAME) {
             const CHAIN = await storage.getChain(CHAIN_NAME);
             if (false !== CHAIN) {
-                let prevBlock: BlockChainBlock | false = false;
+                let prevBlock: ChainBlock | false = false;
 
                 const BLOCKS: any[] = [];
                 await CHAIN.each(async (context) => {
@@ -115,7 +116,7 @@ export function init(
                     BLOCKS.push(
                         toJSON(
                             CHAIN, context.block,
-                            false !== prevBlock ? context.block.isValidWith(prevBlock)
+                            false !== prevBlock ? isBlockValidWith(context.block, prevBlock)
                                                 : true,
                         )
                     );
@@ -208,7 +209,7 @@ function normalizeChainName(name: any) {
 }
 
 function toJSON(
-    chain: BlockChain, block: BlockChainBlock,
+    chain: BlockChain, block: ChainBlock,
     isValid?: boolean
 ): any {
     if (_.isNil(block)) {

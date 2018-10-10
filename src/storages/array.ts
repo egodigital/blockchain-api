@@ -17,7 +17,7 @@
 
 import * as _ from "lodash";
 import * as egoose from "@egodigital/egoose";
-import { BlockChainBlock } from "../block";
+import { BlockChainBlock, ChainBlock } from "../block";
 import { BlockChainIterator, BlockChainIteratorItem, BlockChainStorage, CreateChainResult, GetChainResult } from "../storage";
 import { BlockChain } from "../chain";
 
@@ -25,7 +25,7 @@ class ArrayIterator implements BlockChainIterator {
     private _index: number;
 
     public constructor(
-        private readonly _ARRAY: BlockChainBlock[],
+        private readonly _ARRAY: ChainBlock[],
         private readonly _OFFSET: number,
     ) {
         if (isNaN(this._OFFSET)) {
@@ -56,20 +56,23 @@ class ArrayIterator implements BlockChainIterator {
  * A block chain storage based on an array.
  */
 export class ArrayBlockChainStorage implements BlockChainStorage {
-    private readonly _BLOCKS: BlockChainBlock[] = [
+    private readonly _BLOCKS: ChainBlock[] = [
         BlockChainBlock.createGenesis()
     ];
     private readonly _CHAIN: { [name: string]: BlockChain } = {};
 
     /** @inheritdoc */
-    public addBlock(block: BlockChainBlock) {
+    public addBlock(block: ChainBlock, chain: BlockChain) {
         const LATEST_BLOCK = this.getLatestBlock();
 
+        block.chain = chain;
         block.index = LATEST_BLOCK.index + 1;
         block.previousHash = LATEST_BLOCK.hash;
 
         this._BLOCKS
             .push(block);
+
+        return true;
     }
 
     /** @inheritdoc */

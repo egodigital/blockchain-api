@@ -17,7 +17,8 @@
 
 import * as _ from 'lodash';
 import { ArrayBlockChainStorage } from './storages/array';
-import { BlockChainBlock } from './block';
+import { ChainBlock } from './block';
+import { isBlockValidWith } from './helpers';
 import { BlockChainStorage, BlockChainIterator } from './storage';
 import * as uuid from 'uuid';
 
@@ -35,7 +36,7 @@ export interface BlockChainEachActionContext {
     /**
      * The current block.
      */
-    block: BlockChainBlock;
+    block: ChainBlock;
 
     /**
      * Marks the operation as 'cancelled'.
@@ -61,19 +62,21 @@ export class BlockChain {
      */
     public constructor() {
         this.name = `${
-            uuid().split('-').join()
+            uuid().split('-').join('')
         }`;
     }
 
     /**
      * Adds a block to the underlying storage.
      *
-     * @param {BlockChainBlock} block The block to add.
+     * @param {ChainBlock} block The block to add.
+     *
+     * @return {Promise<boolean>} The promise that indicates if operation was successful or not.
      */
-    public addBlock(block: BlockChainBlock) {
+    public addBlock(block: ChainBlock): Promise<boolean> {
         return Promise.resolve(
             this._storage
-                .addBlock(block)
+                .addBlock(block, this)
         );
     }
 
@@ -98,17 +101,19 @@ export class BlockChain {
                 break;
             }
 
-            await action({
-                block: CURRENT_BLOCK,
-                cancel: function (flag?) {
-                    if (arguments.length < 1) {
-                        flag = true;
-                    }
+            await Promise.resolve(
+                action({
+                    block: CURRENT_BLOCK,
+                    cancel: function (flag?) {
+                        if (arguments.length < 1) {
+                            flag = true;
+                        }
 
-                    cancelled = !!flag;
-                },
-                index: i,
-            });
+                        cancelled = !!flag;
+                    },
+                    index: i,
+                })
+            );
         }
 
         return cancelled;
@@ -126,9 +131,7 @@ export class BlockChain {
             .getIterator(offset);
     }
 
-    /**
-     * The name of that block chain.
-     */
+    /** @inheritdoc */
     public name: string;
 
     /**
@@ -151,12 +154,12 @@ export class BlockChain {
      */
     public async validate(): Promise<boolean> {
         let isValid = true;
-        let prevBlock: BlockChainBlock | false = false;
+        let prevBlock: ChainBlock | false = false;
 
         await this.each(async (context) => {
             try {
                 if (false !== prevBlock) {
-                    if (context.block.isValidWith(prevBlock)) {
+                    if (isBlockValidWith(context.block, prevBlock)) {
                         return;
                     }
 
