@@ -30,6 +30,10 @@ import { FileBlockChainStorage } from './storages/fs';
         process.env.BLOCKCHAIN_STORAGE
     );
 
+    const BLOCKCHAIN_API_KEY = egoose.toStringSafe(
+        process.env.BLOCKCHAIN_API_KEY
+    ).trim();
+
     let storage: BlockChainStorage | false = false;
     switch (BLOCKCHAIN_STORAGE) {
         case '':
@@ -38,10 +42,10 @@ import { FileBlockChainStorage } from './storages/fs';
             storage = new ArrayBlockChainStorage();
             break;
 
-        case 'fs':
         case 'file':
         case 'files':
         case 'filesystem':
+        case 'fs':
         case 'json':
             storage = new FileBlockChainStorage(
                 egoose.toStringSafe(
@@ -60,6 +64,24 @@ import { FileBlockChainStorage } from './storages/fs';
         res.header('X-Tm-Mk', '1979-09-05 23:09');
 
         return next();
+    });
+
+    APP.use((req, res, next) => {
+        if ('' === BLOCKCHAIN_API_KEY) {
+            return next();
+        }
+
+        const AUTHORIZATION = egoose.toStringSafe(
+            req.headers['authorization']
+        ).trim();
+        if (AUTHORIZATION.toLowerCase().startsWith('bearer ')) {
+            if (AUTHORIZATION.substr(7).trim() === BLOCKCHAIN_API_KEY) {
+                return next();
+            }
+        }
+
+        return res.status(401)
+            .send();
     });
 
     // v1
