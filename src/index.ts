@@ -21,6 +21,7 @@ import * as egoose from '@egodigital/egoose';
 import * as express from 'express';
 import { BlockChainStorage } from './storage';
 import { ArrayBlockChainStorage } from './storages/array';
+import { FileBlockChainStorage } from './storages/fs';
 
 (async () => {
     const APP = express();
@@ -29,11 +30,28 @@ import { ArrayBlockChainStorage } from './storages/array';
         process.env.BLOCKCHAIN_STORAGE
     );
 
+    const BLOCKCHAIN_API_KEY = egoose.toStringSafe(
+        process.env.BLOCKCHAIN_API_KEY
+    ).trim();
+
     let storage: BlockChainStorage | false = false;
     switch (BLOCKCHAIN_STORAGE) {
         case '':
+        case 'mem':
         case 'memory':
             storage = new ArrayBlockChainStorage();
+            break;
+
+        case 'file':
+        case 'files':
+        case 'filesystem':
+        case 'fs':
+        case 'json':
+            storage = new FileBlockChainStorage(
+                egoose.toStringSafe(
+                    process.env.BLOCKCHAIN_PATH
+                )
+            );
             break;
     }
 
@@ -46,6 +64,24 @@ import { ArrayBlockChainStorage } from './storages/array';
         res.header('X-Tm-Mk', '1979-09-05 23:09');
 
         return next();
+    });
+
+    APP.use((req, res, next) => {
+        if ('' === BLOCKCHAIN_API_KEY) {
+            return next();
+        }
+
+        const AUTHORIZATION = egoose.toStringSafe(
+            req.headers['authorization']
+        ).trim();
+        if (AUTHORIZATION.toLowerCase().startsWith('bearer ')) {
+            if (AUTHORIZATION.substr(7).trim() === BLOCKCHAIN_API_KEY) {
+                return next();
+            }
+        }
+
+        return res.status(401)
+            .send();
     });
 
     // v1

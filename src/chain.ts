@@ -92,7 +92,7 @@ export class BlockChain {
         let i = -1;
         let cancelled = false;
 
-        const ITERATOR = this._storage.getIterator(offset);
+        const ITERATOR = this._storage.getIterator(this, offset);
         while (!cancelled) {
             ++i;
 
@@ -128,7 +128,7 @@ export class BlockChain {
      */
     public getIterator(offset?: number): BlockChainIterator {
         return this._storage
-            .getIterator(offset);
+            .getIterator(this, offset);
     }
 
     /** @inheritdoc */

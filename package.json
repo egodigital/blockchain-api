@@ -1,11 +1,12 @@
 {
   "name": "@egodigital/blockchain",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A RESTful API for using a simple blockchain.",
   "main": "dist/index.js",
   "scripts": {
     "build": "(rm -r ./dist || true) && (\"./node_modules/.bin/tsc\" && \"./node_modules/.bin/tsc\" -d)",
     "doc": "(rm -r ./doc || true) && (\"./node_modules/.bin/typedoc\" --out ./doc ./src)",
+    "local": "npm run build && bash ./run_local.sh",
     "start": "npm run build && node .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

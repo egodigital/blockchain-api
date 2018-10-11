@@ -103,7 +103,7 @@ export class ArrayBlockChainStorage implements BlockChainStorage {
     }
 
     /** @inheritdoc */
-    public getIterator(offset?: number): BlockChainIterator {
+    public getIterator(chain: BlockChain, offset?: number): BlockChainIterator {
         return new ArrayIterator(
             this._BLOCKS, offset
         );

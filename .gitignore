@@ -1,3 +1,5 @@
 dist/
 doc/
+fs-test/
 node_modules/
+run_local.sh

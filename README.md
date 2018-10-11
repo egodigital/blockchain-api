@@ -33,7 +33,53 @@ You can set environment variables to setup the API.
 | Name | Description |
 | --- | --- |
 | `APP_PORT` | Defines the TCP port, the service should run on. Default: `80` |
+| `BLOCKCHAIN_API_KEY` | Defines the optional bearer token that is used to authorize all requests via `Authorization` HTTP header. |
+| `BLOCKCHAIN_PATH` | If the storage saves blocks to the file system, this is the root path for all chains. |
 | `BLOCKCHAIN_STORAGE` | The type of storage to use. Default: `memory` |
+
+##### BLOCKCHAIN_API_KEY
+
+Define variable:
+
+```bash
+export BLOCKCHAIN_API_KEY=lXBYlJeYGfk8fGoPWjEQ
+```
+
+Make a request:
+
+```http
+POST /api/v1/my_chain
+Host: <API HOST>
+Authorization: Bearer lXBYlJeYGfk8fGoPWjEQ
+
+Lorem ispum
+```
+
+##### BLOCKCHAIN_STORAGE
+
+###### Memory
+
+Possible values:
+
+* `mem`
+* `memory`
+
+###### File system
+
+Possible values:
+
+* `file`
+* `files`
+* `filesystem`
+* `fs`
+* `json`
+
+Example:
+
+```bash
+export BLOCKCHAIN_STORAGE=files
+export BLOCKCHAIN_PATH=./chains
+```
 
 ### API
 

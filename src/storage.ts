@@ -85,9 +85,10 @@ export interface BlockChainStorage {
     /**
      * Returns the iterator for iterating the storage.
      *
+     * @param {BlockChain} chain The underlying chain.
      * @param {number} [offset] The zero based index to start from.
      *
      * @return {BlockChainIterator} The (block) iterator.
      */
-    getIterator(offset?: number): BlockChainIterator;
+    getIterator(chain: BlockChain, offset?: number): BlockChainIterator;
 }
