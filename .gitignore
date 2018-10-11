@@ -2,4 +2,5 @@ dist/
 doc/
 fs-test/
 node_modules/
+events.js
 run_local.sh

@@ -20,10 +20,33 @@ import { BlockChainBlock, ChainBlock, TIMESTAMP_FORMAT } from '../../block';
 import { BlockChain } from '../../chain';
 import { isBlockValidWith } from '../../helpers';
 import * as egoose from '@egodigital/egoose';
+import * as events from '../../events';
 import * as express from 'express';
 import * as joi from 'joi';
 import * as moment from 'moment';
 import * as storage from '../../storage';
+
+/**
+ * API version 1 context.
+ */
+export interface ApiContextV1 {
+    /**
+     * Returns the current event module.
+     *
+     * @return {events.BlockChainApiEventModule} The module.
+     */
+    readonly getEventModule: () => events.BlockChainApiEventModule;
+
+    /**
+     * The root of the API.
+     */
+    readonly root: express.Router;
+
+    /**
+     * The storage to use.
+     */
+    readonly storage: storage.BlockChainStorage;
+}
 
 interface CreateChainOptions {
     name: string;
@@ -39,26 +62,39 @@ const JSON_SCHEMA_CREATE_CHAIN = joi.object({
 /**
  * Initializes the version 1 API.
  *
- * @param {express.Router} root The root.
- * @param {storage.BlockChainStorage} storage The storage to use.
+ * @param {ApiContextV1} context The context.
  */
 export function init(
-    root: express.Router,
-    storage: storage.BlockChainStorage,
+    context: ApiContextV1,
 ) {
+    // const storage = context.storage;
+
     // create new chain
-    root.post('/', express.json(), async (req, res) => {
+    context.root.post('/', express.json(), async (req, res) => {
         const OPTIONS: CreateChainOptions = req.body;
         if (_.isObjectLike(OPTIONS)) {
             if (_.isNil(JSON_SCHEMA_CREATE_CHAIN.validate(OPTIONS).error)) {
+                const EVENTS = context.getEventModule();
+
                 const NEW_CHAIN = await Promise.resolve(
-                    storage.createChain(OPTIONS.name)
+                    context.storage
+                        .createChain(OPTIONS.name)
                 );
                 if (false === NEW_CHAIN) {
                     // does already exist
 
                     return res.status(409)
                         .send();
+                }
+
+                if (EVENTS.onBlockChainCreated) {
+                    await Promise.resolve(
+                        EVENTS.onBlockChainCreated({
+                            chain: NEW_CHAIN,
+                            request: req,
+                            response: res,
+                        })
+                    );
                 }
 
                 const RESULT = {
@@ -77,7 +113,7 @@ export function init(
     });
 
     // get blocks of chain
-    root.get('/:chain', async (req, res) => {
+    context.root.get('/:chain', async (req, res) => {
         let offset = parseInt(
             egoose.toStringSafe(req.query['o'])
                 .trim()
@@ -102,8 +138,11 @@ export function init(
 
         const CHAIN_NAME = normalizeChainName(req.params['chain']);
         if ('' !== CHAIN_NAME) {
-            const CHAIN = await storage.getChain(CHAIN_NAME);
+            const CHAIN = await context.storage
+                .getChain(CHAIN_NAME);
             if (false !== CHAIN) {
+                const EVENTS = context.getEventModule();
+
                 let prevBlock: ChainBlock | false = false;
 
                 const BLOCKS: any[] = [];
@@ -113,13 +152,35 @@ export function init(
                         return;
                     }
 
-                    BLOCKS.push(
-                        toJSON(
-                            CHAIN, context.block,
-                            false !== prevBlock ? isBlockValidWith(context.block, prevBlock)
-                                                : true,
-                        )
+                    let inputBlock = toJSON(
+                        CHAIN, context.block,
+                        false !== prevBlock ? isBlockValidWith(context.block, prevBlock)
+                                            : true,
                     );
+                    let outputBlock = inputBlock;
+
+                    if (EVENTS.onReturnBlock) {
+                        const ARGS: events.ReturnBlockApiEventArguments = {
+                            block: context.block,
+                            chain: CHAIN,
+                            input: inputBlock,
+                            output: false,
+                            request: req,
+                            response: res,
+                        };
+
+                        await Promise.resolve(
+                            EVENTS.onReturnBlock(
+                                ARGS
+                            ),
+                        );
+
+                        if (ARGS.output) {
+                            outputBlock = ARGS.output;
+                        }
+                    }
+
+                    BLOCKS.push(outputBlock);
 
                     if (false === prevBlock) {
                         prevBlock = context.block;
@@ -144,8 +205,8 @@ export function init(
             .send();
     });
 
-    // get blocks of chain
-    root.get('/:chain/:index', async (req, res) => {
+    // get data of block
+    context.root.get('/:chain/:index', async (req, res) => {
         const CHAIN_NAME = normalizeChainName(req.params['chain']);
         if ('' !== CHAIN_NAME) {
             const INDEX = parseInt(
@@ -154,15 +215,42 @@ export function init(
                 ).trim()
             );
             if (!isNaN(INDEX) && INDEX >= 0) {
-                const CHAIN = await storage.getChain(CHAIN_NAME);
+                const CHAIN = await context.storage
+                    .getChain(CHAIN_NAME);
                 if (false !== CHAIN) {
                     const ITERATOR = CHAIN.getIterator(INDEX);
 
                     const BLOCK = await ITERATOR.next();
                     if (false !== BLOCK) {
-                        return res.status(BLOCK.data.length > 0 ? 200 : 204)
+                        const EVENTS = context.getEventModule();
+
+                        let inputData = BLOCK.data;
+                        let outputData = inputData;
+
+                        if (EVENTS.onReturnBlockData) {
+                            const ARGS: events.ReturnBlockDataApiEventArguments = {
+                                block: BLOCK,
+                                chain: CHAIN,
+                                input: inputData,
+                                output: false,
+                                request: req,
+                                response: res,
+                            };
+
+                            await Promise.resolve(
+                                EVENTS.onReturnBlockData(
+                                    ARGS
+                                ),
+                            );
+
+                            if (ARGS.output) {
+                                outputData = ARGS.output;
+                            }
+                        }
+
+                        return res.status(outputData.length > 0 ? 200 : 204)
                             .header('Content-type', 'application/octet-stream')
-                            .send(BLOCK.data);
+                            .send(outputData);
                     }
                 }
 
@@ -176,21 +264,46 @@ export function init(
     });
 
     // add block to chain
-    root.post('/:chain', async (req, res) => {
+    context.root.post('/:chain', async (req, res) => {
         const CHAIN_NAME = normalizeChainName(req.params['chain']);
         if ('' !== CHAIN_NAME) {
-            const CHAIN = await storage.getChain(CHAIN_NAME);
+            const CHAIN = await context.storage
+                .getChain(CHAIN_NAME);
             if (false !== CHAIN) {
+                const EVENTS = context.getEventModule();
+
                 const BLOCK = new BlockChainBlock(
                     await egoose.readAll(req)
                 );
                 await CHAIN.addBlock(BLOCK);
 
-                const RESULT = toJSON(CHAIN, BLOCK);
+                let inputBlock = toJSON(CHAIN, BLOCK);
+                let outputBlock = inputBlock;
+
+                if (EVENTS.onReturnBlock) {
+                    const ARGS: events.ReturnBlockApiEventArguments = {
+                        block: BLOCK,
+                        chain: CHAIN,
+                        input: inputBlock,
+                        output: false,
+                        request: req,
+                        response: res,
+                    };
+
+                    await Promise.resolve(
+                        EVENTS.onReturnBlock(
+                            ARGS
+                        ),
+                    );
+
+                    if (ARGS.output) {
+                        outputBlock = ARGS.output;
+                    }
+                }
 
                 return res.status(200)
                     .header('Content-type', 'application/json; charset=utf-8')
-                    .send(new Buffer(JSON.stringify(RESULT), 'utf8'));
+                    .send(new Buffer(outputBlock, 'utf8'));
             }
 
             return res.status(404)

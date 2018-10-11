@@ -18,7 +18,9 @@
 import * as _ from 'lodash';
 import * as api_v1 from './api/v1';
 import * as egoose from '@egodigital/egoose';
+import * as events from './events';
 import * as express from 'express';
+import * as path from 'path';
 import { BlockChainStorage } from './storage';
 import { ArrayBlockChainStorage } from './storages/array';
 import { FileBlockChainStorage } from './storages/fs';
@@ -33,6 +35,21 @@ import { FileBlockChainStorage } from './storages/fs';
     const BLOCKCHAIN_API_KEY = egoose.toStringSafe(
         process.env.BLOCKCHAIN_API_KEY
     ).trim();
+
+    let blockChainApiEventModule = egoose.toStringSafe(
+        process.env.BLOCKCHAIN_API_EVENTS
+    ).trim();
+    if ('' !== blockChainApiEventModule) {
+        if (!path.isAbsolute(blockChainApiEventModule)) {
+            blockChainApiEventModule = path.join(
+                process.cwd(), blockChainApiEventModule,
+            );
+        }
+
+        blockChainApiEventModule = path.resolve(
+            blockChainApiEventModule
+        );
+    }
 
     let storage: BlockChainStorage | false = false;
     switch (BLOCKCHAIN_STORAGE) {
@@ -88,9 +105,20 @@ import { FileBlockChainStorage } from './storages/fs';
     {
         const v1 = express.Router();
 
-        api_v1.init(
-            v1, storage,
-        );
+        api_v1.init({
+            getEventModule: () => {
+                let m: events.BlockChainApiEventModule;
+                if ('' !== blockChainApiEventModule) {
+                    delete require.cache[blockChainApiEventModule];
+
+                    m = require(blockChainApiEventModule);
+                }
+
+                return m || {};
+            },
+            root: v1,
+            storage: storage,
+        });
 
         APP.use('/api/v1', v1);
     }
