@@ -169,6 +169,7 @@ export class FileBlockChainStorage implements BlockChainStorage {
                     if (!fs.existsSync(CHAIN_DIR)) {
                         await fs.mkdirs(CHAIN_DIR);
 
+                        // genesis block
                         await saveBlock(
                             BlockChainBlock.createGenesis(),
                             path.join(
@@ -247,6 +248,9 @@ export class FileBlockChainStorage implements BlockChainStorage {
         );
     }
 
+    /**
+     * The queue that is used for file system operations.
+     */
     public readonly queue = new pQueue({
         concurrency: 1,
     });

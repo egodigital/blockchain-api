@@ -172,7 +172,7 @@ export class BlockChainBlock implements ChainBlock {
 }
 
 /**
- * Simple implementation of 'chainBlock' interface.
+ * Simple implementation of 'ChainBlock' interface.
  */
 export class SimpleChainBlock implements ChainBlock {
     /** @inheritdoc */
