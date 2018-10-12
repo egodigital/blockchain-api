@@ -303,7 +303,7 @@ export function init(
 
                 return res.status(200)
                     .header('Content-type', 'application/json; charset=utf-8')
-                    .send(new Buffer(outputBlock, 'utf8'));
+                    .send(new Buffer(JSON.stringify(outputBlock), 'utf8'));
             }
 
             return res.status(404)
