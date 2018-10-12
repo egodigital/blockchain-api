@@ -182,9 +182,7 @@ export function init(
 
                     BLOCKS.push(outputBlock);
 
-                    if (false === prevBlock) {
-                        prevBlock = context.block;
-                    }
+                    prevBlock = context.block;
                 }, offset);
 
                 const RESULT = {
