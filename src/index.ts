@@ -24,6 +24,7 @@ import * as path from 'path';
 import { BlockChainStorage } from './storage';
 import { ArrayBlockChainStorage } from './storages/array';
 import { FileBlockChainStorage } from './storages/fs';
+import { initMongoDatabaseSchema, MongoBlockChainStorage, BlockChainMongoDatabase } from './storages/mongo';
 
 (async () => {
     const APP = express();
@@ -57,6 +58,19 @@ import { FileBlockChainStorage } from './storages/fs';
         case 'mem':
         case 'memory':
             storage = new ArrayBlockChainStorage();
+            break;
+
+        case '':
+        case 'mongo':
+        case 'mongodb':
+        case 'mongo_db':
+            {
+                initMongoDatabaseSchema();
+
+                storage = new MongoBlockChainStorage(
+                    () => BlockChainMongoDatabase.fromEnvironment(),
+                );
+            }
             break;
 
         case 'file':
