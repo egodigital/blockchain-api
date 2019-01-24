@@ -91,6 +91,10 @@ import { initMongoDatabaseSchema, MongoBlockChainStorage, BlockChainMongoDatabas
     }
 
     APP.use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "*,Content-Type,Authorization");
+        res.header("Access-Control-Allow-Methods", "*,GET,POST,PUT,DELETE,PATCH");
+
         res.header('X-Powered-By', 'e.GO Digital GmbH, Aachen, Germany');
         res.header('X-Tm-Mk', '1979-09-05 23:09');
 
