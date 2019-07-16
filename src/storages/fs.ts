@@ -20,7 +20,7 @@ import * as egoose from "@egodigital/egoose";
 import * as fs from "fs-extra";
 import * as joi from "joi";
 import * as path from 'path';
-import * as pQueue from 'p-queue';
+import { default as pQueue } from 'p-queue';
 import * as sanitizeFilename from 'sanitize-filename';
 import { BlockChainBlock, ChainBlock } from "../block";
 import { BlockChainIterator, BlockChainIteratorItem, BlockChainStorage, CreateChainResult, GetChainResult } from "../storage";
