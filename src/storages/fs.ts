@@ -21,7 +21,7 @@ import * as fs from "fs-extra";
 import * as joi from "joi";
 import * as path from 'path';
 import { default as pQueue } from 'p-queue';
-import * as sanitizeFilename from 'sanitize-filename';
+const sanitizeFilename = require('sanitize-filename');
 import { BlockChainBlock, ChainBlock } from "../block";
 import { BlockChainIterator, BlockChainIteratorItem, BlockChainStorage, CreateChainResult, GetChainResult } from "../storage";
 import { BlockChain } from "../chain";
